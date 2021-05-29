@@ -1,5 +1,5 @@
 
-class Cell{
+export default class Cell{
     static width;
     static height;
 
@@ -21,27 +21,28 @@ class Cell{
      * @param {*} cols maximum number of columns
      * @returns the number of alive neighbors
      */
-    getNumberOfAliveNeighbours(row, col, rows, cols){
+     getNumberOfAliveNeighbours(row, col, rows, cols){
         var numberOfAliveNeighbours = 0;
         //Check for valid indexes
         if(row<0 || col<0) return -1;
 
         //Check by row
-        if(row!=0 && this.board[row-1][col].isAlive) numberOfAliveNeighbours++;
-        if(row+1 < rows && this.board[row+1][col].isAlive) numberOfAliveNeighbours++;
-        
-        //Check by column
-        if(col!=0 && this.board[col-1][col].isAlive) numberOfAliveNeighbours++;
-        if(col+1 < cols && this.board[row][col+1].isAlive) numberOfAliveNeighbours++;
+        if(row!=0 && this.board[row-1][col].alive) numberOfAliveNeighbours++;
+        if((row < rows -1) && this.board[row+1][col].alive) numberOfAliveNeighbours++;
+
+        // //Check by column
+        if(col!=0 && this.board[row][col-1].alive) numberOfAliveNeighbours++;
+        if((col < cols -1) && this.board[row][col+1].alive) numberOfAliveNeighbours++;
 
         //Check diagonals
         if(row>0){
-            if((col>0 && this.board[row-1][col-1].isAlive) || (col< cols-1 && board[row][col+1].isAlive)) numberOfAliveNeighbours++;
+            if(col!=0 && this.board[row-1][col-1].alive) numberOfAliveNeighbours++;
+            if((col< cols-1) && this.board[row-1][col+1].alive) numberOfAliveNeighbours++;
         }
-        if(row<rows-1){
-            if(( col>0 && board[row][col+1].isAlive) || (col< cols-1 && board[row+1][col+1])) numberOfAliveNeighbours++;
+        if(row < rows-1){
+            if( col!=0 && this.board[row+1][col-1].alive) numberOfAliveNeighbours++; 
+            if((col< cols-1) && this.board[row+1][col+1].alive) numberOfAliveNeighbours++;
         }
-
         return numberOfAliveNeighbours;
     }
     /**
@@ -52,32 +53,37 @@ class Cell{
      * @param {*} cols maximum number of columns on the board
      */
     determineNextGenOfCell(row, col, rows, cols) {
-        var numberOfAliveNeighbours = getNumberOfAliveNeighbours(row, col, rows, cols);
-        
-        //Living cell dies if more than 3 neighbors are alive (Overpopulation)
-        //Living cell with less than two alive nejghbours dies (Loneliness)
-        if(this.isAlive){
-            if(numberOfAliveNeighbours > 3 || numberOfAliveNeighbours < 2){
+        var numberOfAliveNeighbours = this.getNumberOfAliveNeighbours(row, col, rows, cols);
+
+        if(this.alive){
+            if(numberOfAliveNeighbours >3 || numberOfAliveNeighbours <2){
+                this.nextGen = false;
+            }else{
+                this.nextGen = true;
+            }
+        }else{
+            if(numberOfAliveNeighbours == 3){
+                this.nextGen = true;
+            }else{
                 this.nextGen = false;
             }
-        }else if(numberOfAliveNeighbours == 3) this.nextGen = true; //If the number of alive neighbors is exactly 3, then the cell will became alive
-        else{
-            //Stall 
-            this.nextGen = this.isAlive;
         }
+        
     }
 
     getNextGenOfCell(){ 
-        this.isAlive = this.nextGen;
+        this.alive = this.nextGen;
     }
 
     //Getters
     getWidth() { return this.width;}
     getHeight() { return this.height; }
+    getState() {return this.alive;}
 
     //Setters
     setWidth(width) { this.width = width; }
     setHeight(height) { this.height = height; }
+    setState(state) {this.alive = state; }
 
     /**
      * Method that draws the cell to the given context
@@ -86,11 +92,8 @@ class Cell{
      * @param  ypos the Y position on which the cell should be drawn 
      */
     draw(context, xpos, ypos){
-        this.isAlive? context.fillStyle = "#000000" : context.fillStyle = "#FFFFFF";
-        context.rect(xpos, ypos, this.width, this.height);
-        context.fill();
-        context.lineWidth=1;
-        context.strokeStyle = "#000000";
-        context.stroke();
+        this.alive ? context.fillStyle = "#000000" : context.fillStyle = "#FFFFFF";
+        context.fillRect(xpos, ypos, this.width, this.height);
     }
 };
+
